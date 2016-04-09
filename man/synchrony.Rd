@@ -5,7 +5,7 @@
 \title{Make potentials object--mating synchrony}
 \usage{
 synchrony(scene, method, subject = "all", averageType = "mean",
-  syncNN = 1, compareToSelf = FALSE)
+  syncNN = 1, compareToSelf = FALSE, frame = "within")
 }
 \arguments{
 \item{scene}{a matingScene object that includes the flowering schedule for the
@@ -17,10 +17,20 @@ described in Augspurger (1983). "kempenaers" is based on the method
 described in Kempenaers (1993). "sync_prop" will calculate individual
  synchrony based on the proportion of the sum of all individuals' days
  available to mate that coincided with the individual's days available for mating.
-"overlap" will calculate a synchrony value based on the number of days both
+"overlap" is based on the method described in Ison et al. (2014) and will
+calculate a synchrony value based on the number of days both
 individuals were flowering divided by the number of days either individual
 was available for mating. "sync_nn" gives the average of the kth nearest
-neighbor, or rather the kth most synchronous individual.}
+neighbor, or rather the kth most synchronous individual. "simple1" will
+calculate the number of individuals receptive on the peak day
+(day with highest mating receptivity) divided by the number of individuals
+in the population. "simple2" will calculate the number of individuals
+receptive on the peak day divided by the total number of observations -
+this method is useful for comparing to data that has no information on
+individuals. "simple3" calculates the average (determined by argument
+\code{averageType}) number of individuals receptive
+per day divided by the maximum number of individuals receptive per day.
+All "simple" methods do not have pairwise or individual values.}
 
 \item{subject}{one of "population", "pairwise", "individual", or "all"
 - see Value for more details.}
@@ -28,11 +38,17 @@ neighbor, or rather the kth most synchronous individual.}
 \item{averageType}{character. Identifies whether to take the mean or median
 when calculating averages}
 
-\item{syncNN}{integer. The kth nearest neighbor to be averaged when
-calculating population synchrony}
+\item{syncNN}{integer between 1 and n-1 (inclusive) or numeric between 0 and 1
+(exclusive). The kth nearest neighbor to be averaged when
+calculating population synchrony. If k is in (0,1) then the k*nth nearest neighbor
+will be found}
 
 \item{compareToSelf}{logical. Whether or not to include self comparisons
 when calculation synchrony. Defaults to FALSE.}
+
+\item{frame}{the timeframe that synchrony is to be calculated over; options are 'within,'
+for synchrony within a season, or 'between,' for synchrony across multiple seasons.
+Defaults to 'within'.}
 }
 \value{
 A potentials object containing one more more of the following, depending the
@@ -56,7 +72,7 @@ Calculate one of a variety of measures of mating synchrony.
 }
 \details{
 Measures of synchrony are based on methods described in Augspurger (1983),
-Kempenaers (1983), and from Ison and Wagenius (2014), as well
+Kempenaers (1983), and from Ison et al. (2014), as well
 as variations on different factors of those measures.
 }
 \examples{
@@ -70,9 +86,13 @@ syncVals <- synchrony(pop2, "sync_nn", "all", "median", 123)
 Danny Hanson
 }
 \references{
-Kempenaers, B. (1993) The use of a breeding synchrony index.
-\emph{Ornis Scandinavica}, \strong{24}, 1. \cr\cr
 Augspurger, C.K. (1983) Phenology, flowering synchrony, and fruit set of
-six neotropical shrubs. \emph{Biotropica} \strong{15}, 257-267.
+six neotropical shrubs. \emph{Biotropica} \strong{15}, 257-267. \cr\cr
+Ison, J.L., S. Wagenius, D. Reitz., M.V. Ashley. (2014) Mating between
+\emph{Echinacea angustifolia} (Asteraceae) individuals increases with
+their flowering synchrony and spatial proximity.
+\emph{American Journal of Botany} \strong{101}, 180-189 \cr\cr
+Kempenaers, B. (1993) The use of a breeding synchrony index.
+\emph{Ornis Scandinavica}, \strong{24}, 1.
 }
 

@@ -26,7 +26,7 @@ NumericMatrix pair_si_ech(IntegerVector s1, IntegerVector s2) {
 }
 
 // [[Rcpp::export]]
-NumericMatrix pair_dioecious(IntegerVector s1, IntegerVector s2) {
+NumericMatrix pair_dioecious(IntegerVector s1) {
   int n = s1.size();
   NumericMatrix compatMat(n, n);
   for (int i = 0; i < n; i++) {

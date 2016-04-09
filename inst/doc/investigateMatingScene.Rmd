@@ -1,0 +1,333 @@
+---
+title: "Investigate mating scenes"
+author: "Stuart Wagenius, Danny Hanson, and Amy Waananen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Investigate mating scenes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.width=7.2, fig.height=5)
+```
+
+
+# Introduction
+
+This vignette consists of three brief investigations of mating scenes using package `mateable`. A mating scene is a bout of mating where the coordinates of participating individuals are defined in one, two, or three dimensions: space, time, and compatibility. From such information we can quantify mating potential, the capacity for sexual reproduction based on the location, reproductive timing, and compatibility of prospective mates. Mating potential can be quantified for a pair of individuals based on the distance between them, the timing of their reproductive activity, and their compatibility. Similarly, mating potential can be defined for an individual within the context of the mating scene or for an entire scene.
+
+
+Begin by loading the package.
+
+```{r}
+library(mateable)
+packageDescription("mateable")$Version
+```
+
+For any function in `mateable` you can learn more by typing a question mark before the function name, i.e. `?makeScene`. To learn all the functions, type `?mateable` and click index at the bottom of the page.
+
+
+# A real dataset
+
+In this section we look at flowering during 2012 in a remnant prairie population of *Echinacea angustifolia*, the narrow-leaved purple coneflower. The data frame `eelr2012` is included in the package.
+
+```{r}
+str(eelr2012)
+```
+
+This data set includes spatial and temporal information on all 44 plants that flowered in 2012 from the East Elk Lake Road population. Each plant has a tag with a unique number for identification purposes and we listed the count of heads that the plant produced in 2012. These long-lived plants do not produce heads in every year, we removed all plants with zero heads in 2012. The columns firstDay and lastDay indicate the first and last days that each plant produced pollen. Spatial coordinates are in meters.
+
+The first thing to do is convert the data frame to a mating scene object. We must indicate which columns contain spatial and temporal coordinates. Note that some columns are integer and numeric. Columns firstDay and lastDay are saved in a Date format. `makeScene` can read some character formats. If you want to convert character or POSIX to the Date format, read about function `as.Date` or install package `lubridate`.
+
+```{r}
+eelr <- makeScene(eelr2012, startCol = "firstDay", endCol = "lastDay",
+                       xCol = "Ecoord", yCol = "Ncoord", idCol = "tagNo")
+```
+
+We can do a lot with this `matingScene` object. Let's start by focusing on the spatial dimension of the mating scene.
+
+## The spatial dimension of the mating scene
+
+We can look at the spatial "s" dimension with a map. Note that we can use standard R graphical parameters to change the looks of the graph.
+
+```{r, fig.show = 'hold'}
+plotScene(eelr, "s")
+plotScene(eelr, "s", pch = 1)
+```
+
+We can also get the distances between all pairs using function `pairDist`, and then visualize their distribution.
+
+```{r}
+ePair <- pairDist(eelr) # matrix of distances
+hist(ePair, 40) # visualize histogram
+```
+
+We can also calculate the distance from each individual to its nearest neighbors (aka potential mates). Here we visualize the distance of every plant to its 3rd nearest neighbor.
+
+```{r}
+eKnn <- kNearNeighbors(eelr, 6) # 1,2,...,6 nearest potential mate
+str(eKnn)
+hist(eKnn[, 3], 40, main = "Distance to 3rd nearest neighbor (m)")
+```
+
+Function `matingSummary` calculates many characteristics of the "whole scene." We can save summaries as a new object `eSum` and look at characteristics of the entire mating scene, either by indexing or by name. Here are some spatial summaries.
+
+```{r, collapse = TRUE}
+eSum <- matingSummary(eelr)
+eSum[c("minX", "minY", "k1")] # by index
+# by name
+eSum$minX
+eSum$minY
+eSum$k1 # mean distance to 1st nearest potential mate
+```
+
+Distance is a measure of isolation from mates. To characterize mating potential, which is inversely related to distance, we want proximity to mates. For this, we have function `proximity`.
+
+```{r}
+eProx <- proximity(eelr, "maxPropSqrd")
+eProx$pop
+hist(eProx$ind$proximity, 30)
+
+```
+
+Now that we have saved a proximity object, `eProx`, we can visualize it using function `plotPotential`. There are many ways to visualize it. The defaults return a three panel figure: pairwise values of proximity, including a histogram of all pairs, a network diagram of a random subset of 9 individuals, and a heat map of all interactions between those same nine. In the network diagram, line width corresponds to the pairwise proximity of the individuals being connected, and the size of label indicates the individual's mean proximity with all other individuals in the network. 
+
+```{r}
+plotPotential(eProx)
+```
+
+If we want to focus on a particular subset of plants, then we can define them. Here, we make only a network diagram of these focal plants. Note that by default the size of the individual labels on the network diagram scales with the individual proximity, but this can be turned off.
+
+```{r}
+focalPlants <- c(17217, 17202, 14582, 15114, 7614, 1509, 17002)
+plotPotential(eProx, plotType = "net", sub.ids = focalPlants)
+```
+
+Notice plant 1509 is more isolated from potential mates than the other individuals.
+
+## The temporal dimension of the mating scene
+
+Now we turn from the spatial dimension of the mating scene to the temporal dimension. We can visualize the coordinates of mating activity in time with a mating schedule. The function `plotScene` works just as well in time as in space, we just need to specify which dimension--use "t" for time.
+
+```{r}
+plotScene(eelr, "t")
+plotScene(eelr, "t", sub = 'all', drawQuartiles = FALSE, text.cex = 0.5)
+```
+
+These figures shows the duration of reproductive period during 2012 for each of the 44 individuals in the population with a horizontal line starting on the date the individual first produced pollen and ending on the date when pollen was last produced. Here the individuals are sorted from bottom to top by their first day. The dots indicate the total number of individuals participating in mating on each day.
+
+Just as we can calculate and visualize the spatial distances between all pairs using function `pairDist`, we can do the same in the temporal dimension with function `overlap`. Function `overlap` makes a matrix of overlapping days for all pairs and we can use a histogram to see the distribution.
+
+```{r}
+
+eOver <- overlap(eelr, compareToSelf = T) # matrix of days overlapping
+hist(eOver, 40, main = "Histogram of days overlapping between pair") 
+```
+
+
+We can look at the number of individuals participating in mating every day.
+```{r, fig.show = 'hold'}
+eRecep <- receptivityByDay(eelr) # T/F receptive on each day
+str(eRecep) # matrix
+dailyReceptivitySummary <- receptivityByDay(eelr, summary = TRUE)
+dailyReceptivitySummary # a named integer vector
+plot(as.Date(names(dailyReceptivitySummary)), dailyReceptivitySummary,
+     xlab = 'date', ylab = 'count of receptive individuals')
+
+```
+
+Folks have calculated synchrony many ways for individuals, pairs, and populations. Our function `synchrony` does it all; well, it does a lot. We can specify  many different synchrony measures, with enticing names, such as these (read the help for details): "augspurger", "kempenaers", "sync\_prop", "overlap", "sync\_nn", "simple1", "simple2", and "simple3." Also, we can calculate measures for different subjects: individual, pairs, and the whole scene (population).
+
+Here, for example, we calculate synchrony for all subjects using the overlap method and save it as eSync. Then we show the mean and median population values in red and blue, respectively.
+
+```{r}
+eSync <- synchrony(eelr, "overlap")
+hist(eSync$ind[, 2], 30)
+abline(v = eSync$pop, col ="red", lwd = 2)
+abline(v = synchrony(eelr, "overlap", averageType = "median")$pop,
+       col = "blue", lwd = 2)
+```
+
+Individual overlap indicates the proportion of potentital mates in the scene that were flowering averaged over all days that the focal individual participated in mating.
+
+Just like we visualized spatial mating potential, we can visualize mating potential in the temporal dimension. Here we emphasize the same focal plants as we did above.
+
+```{r}
+plotPotential(eSync, sub.ids = focalPlants)
+```
+
+Notice that 1509 is not isolated in time from potential mates.
+
+
+## Time and space together
+
+Function `plotScene` is useful because it enables us to visualize all dimensions of the mating scene (in this data set we only have two dimensions). In the below figure we also highlight the focal plants we selected above so we can see where and when they participate in mating.
+
+```{r}
+plotScene(eelr, c('s','t'), sub = focalPlants, N = 4, text.cex = 0.5)
+```
+
+Function `plot3DScene` is also useful because it enables us to visualize two dimensions of the mating scene in one panel.
+
+```{r}
+plot3DScene(eelr)
+plot3DScene(eelr, pt.cex = .5, sub = focalPlants, N = 4)
+
+```
+
+Function `matingSummary` calculates many characteristics of the entire mating scene in all three dimensions. Though in this example data set we have only dimensions.
+
+```{r, collapse = TRUE, results='hold'}
+eSum <- matingSummary(eelr)
+eSum[c("meanSD", "sdSD", "meanDur", "sdDur", "peak")] # index
+eSum[c("minX", "minY", "k1")]
+eSum$minX # by name
+eSum$minY
+eSum$k1
+```
+
+# Compatibility
+
+In animals, females are compatible mates with males but they are not compatible with other females. Similarly, males are only compatible with females. We say that mating potential between a pair of males is zero, between a pair of females is zero, and between a mixed-sex pair it is 1. Most animal species, though not all, have a breeding system like this. It's more complicated in plants. Plants have many breeding systems, including self-compatibility and dioecy--dioecy is just like the simple case in animals. About half of all plants species have some kind of self-incompatibility system which makes it possible for some pairs to be mating incompatible, i.e. have mating potential of zero. Package `mateable` allows us to model the animal breeding system and the breeding system in *Echinacea* (sporophytic self-incompatibility). In the following examples, we show examples of each. We intend to add capability for handling more breeding systems in future releases of `mateable`.
+
+# A simulated dataset
+
+Along with using data from real populations, we can also simulate scenes. Here we simulate a scene using values from the eelr summary as inputs for the simulation parameters.
+
+```{r}
+# make scene based off eelr summary information
+simScene <- simulateScene(size = nrow(eelr), meanSD = eSum$meanSD,
+                          sdSD = eSum$sdSD, meanDur = eSum$meanDur,
+                          sdDur = eSum$sdDur, xRange = c(eSum$minX, eSum$maxX),
+                          yRange = c(eSum$minY, eSum$maxY))
+```
+
+A simulated scene can be treated the same way as a scene made from real data, meaning all functions work in the same way. In addition, simulated scenes will always have all three dimensions (space, time, and compatibility), so you can examine any aspect of mating potential.
+
+```{r}
+sProx <- proximity(simScene, "maxPropSqrd")
+sSync <- synchrony(simScene, "augspurger")
+sComp <- compatibility(simScene, "si_echinacea")
+```
+
+The coordinates in the spatial and temporal dimensions are generated from uniform and normal distributions, respectively. The coordinates in the compatibility dimension are, for each individual, two alleles selected at random from the number of total alleles in the scene (default is 10). In the third panel of the second figure allele shows the alleles for each individual; they are labeled 1, 2, 3, ... , 10.
+
+```{r, fig.height=4, fig.show = 'hold'}
+plotScene(simScene)
+plot3DScene(simScene, sub = 'random')
+
+plotPotential(sSync)
+plotPotential(sProx)
+```
+
+Mating potentials in space and time are continuous because space and time are continuous. In contrast, mating compatibility between two individuals, as we have modeled it here, is either possible or not. Therefore mating potential for a pair is either 1 or 0.
+
+```{r}
+plotPotential(sComp, density = FALSE)
+plotPotential(sComp, plotType = c('net','heat'), density = FALSE)
+```
+
+
+Plot3DPotential gives us an idea of relationships between different dimensions of potential.
+
+```{r}
+plot3DPotential(list(sProx, sSync), subject = "ind")
+plot3DPotential(list(sProx, sSync), subject = "ind", sample = 'all')
+plot3DPotential(list(sProx, sSync), subject = "ind", sample = 'random')
+
+plot3DPotential(list(sProx, sSync, sComp))
+plot3DPotential(list(sProx, sSync, sComp), sub.ids = c(21,4))
+```
+
+Because these scenes are simulated, we do not expect to see correlations in potential between dimensions.
+
+## *Compatibility in animals*
+
+For those who work with animals, have no fear, you can create mating scene objects too! When using simulated data, use the option `sAlleles = 2` and choose either the number 1 or 2 to represent female or male (it doesn't matter which, they're randomly generated. M is 2 by default). If using real data, create a column with 1 or 2 for female or male and specify that column as `s1Col` in `makeScene`. When using compatibility, choose the method "dioecious" and compatibility will be 1 if they are not the same sex (i.e. not both 1 in column s1). 
+
+```{r, collapse = TRUE, results='hold'}
+
+simulatedCoral <- simulateScene(10, sAlleles = 2)
+plotScene(simulatedCoral)
+plot3DScene(simulatedCoral)
+plotPotential(compatibility(simulatedCoral, "dioecious"))
+```
+
+We can look at the `matingScene` object called "simulatedCoral". Column `s2` is ignored.
+
+```{r, collapse = TRUE}
+simulatedCoral
+str(simulatedCoral)
+summary(simulatedCoral)
+```
+
+# Multi-year scenes
+
+Here we investigate the dynamics of a population's mating scene over multiple seasons. Multi-year scenes must be formatted as lists, with each list element representing one mating scene (or one year). If we had a multi-year dataset, function `makeScene` would make it into a multi-year scene automatically using the argument `multiYear = TRUE`. Alternatively, we can simulate several mating scenes and combine them in a list by hand, as in the example below. 
+
+```{r}
+simScene1 <- simulateScene(size = nrow(eelr), meanSD = eSum$meanSD,
+                          sdSD = eSum$sdSD, meanDur = eSum$meanDur,
+                          sdDur = eSum$sdDur, xRange = c(eSum$minX, eSum$maxX),
+                          yRange = c(eSum$minY, eSum$maxY))
+simScene2<- simulateScene(size = 1.5*nrow(eelr), meanSD = eSum$meanSD + 365,
+                          sdSD = eSum$sdSD, meanDur = eSum$meanDur,
+                          sdDur = eSum$sdDur, xRange = c(eSum$minX, eSum$maxX),
+                          yRange = c(eSum$minY, eSum$maxY))
+simScene3 <- simulateScene(size = 0.8*nrow(eelr), meanSD = eSum$meanSD + 730,
+                          sdSD = eSum$sdSD, meanDur = eSum$meanDur,
+                          sdDur = eSum$sdDur, xRange = c(eSum$minX, eSum$maxX),
+                          yRange = c(eSum$minY, eSum$maxY))
+
+multiYearScene <- list('2012' = simScene1,'2013' = simScene2, '2014' = simScene3)
+```
+
+All of the different analysis and plotting methods can be applied directly to multi-year scenes. 
+We can make multi-panel plots of the `matingScene` over years. The plot limits are consistent across years, making it easier to compare differences.
+
+```{r,fig.height = 8}
+plotScene(multiYearScene,sub = c(1,6,12,18,13,24,55,45,60), text.cex = 0.8)
+```
+
+We can also combine mating dimensions for multi-year plots using `plot3DScene`.
+
+```{r,fig.height = 8}
+plot3DScene(multiYearScene, pt.cex = 1.2, sub = c(1,6,12,18,13,24,55,45,60))
+```
+
+The functions `synchrony`, `proximity`, and `compatibility` also work on multi-year scenes, returning a list of potentials objects for each year. 
+
+```{r}
+syncMulti <- synchrony(multiYearScene, method = 'augs')
+proxMulti <- proximity(multiYearScene, method = 'maxPropSqrd')
+compatMulti <- compatibility(multiYearScene, method = 'si_echinacea')
+
+str(syncMulti) # a list of lists
+```
+
+The functions `plotPotential` and `plot3DPotential` will then work on multi-year potential objects. For example, we can visualize synchrony over multiple years. Note that these functions will try to select the same sample of individuals across years, so if there is a year when few individuals in that sample are participating in the mating scene, there will be fewer individuals displayed in that year's heatmap and network diagram.
+
+```{r, fig.height = 8}
+plotPotential(syncMulti, sub.ids = c(1,6,12,18,13,24,55,44,60))
+```
+
+And we can visualize proximity over multiple years.
+
+```{r, fig.height = 8}
+plotPotential(proxMulti,sub.ids = c(1,6,12,18,13,24,55,45,60))
+```
+
+And, like before, we can visualize combinations of synchrony, proximity, and compatibility over multiple years.
+
+```{r, fig.height = 8}
+plot3DPotential(list(syncMulti, proxMulti, compatMulti), subject = 'ind',
+                pt.cex = 1, sub.ids = c(1,6,12,18,13,24,55,45,60))
+```
+
+## Conclusion
+
+We find `mateable` useful and hope you do too. It can get better, so we are improving it. A [development version](https://github.com/stuartWagenius/mateable) of `mateable` is available via gitHub. We welcome user suggestions for improvements. Please submit bugs and feature requests to the [mateable development page](https://github.com/stuartWagenius/mateable/issues) on github or contact Stuart directly.
+
+

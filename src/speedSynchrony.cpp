@@ -24,6 +24,19 @@ NumericVector row_medians(NumericMatrix toSort) {
 }
 
 // [[Rcpp::export]]
+NumericVector row_kth(NumericMatrix toSort, int k) {
+  int n = toSort.rows();
+  NumericVector meds = NumericVector(n);
+  for (int i = 0; i < n; i++) {
+    NumericVector curRow = toSort.row(i);
+    std::nth_element(curRow.begin(), curRow.begin() + k, curRow.end());
+    meds[i] = curRow[k];
+  }
+
+  return meds;
+}
+
+// [[Rcpp::export]]
 NumericVector kemp_ind(IntegerVector byDay, IntegerVector starts,
                        IntegerVector ends, IntegerVector durs,
                        bool compSelf = false) {

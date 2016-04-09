@@ -5,9 +5,10 @@
 \title{graphical visualization of a mating scene object}
 \usage{
 plotScene(scene, dimension = "auto", opening = NULL, closing = NULL,
-  dailyPoints = TRUE, drawQuartiles = TRUE, sub = NULL, N = 9,
-  xcoord = "xlab", ycoord = "ylab", pch = 19, quartileWt = 2,
-  quartileColor = "gray81", peakColor = "gray27", ...)
+  dailyPoints = TRUE, drawQuartiles = TRUE, sub = NULL, N = 1,
+  xlab.spat = NULL, ylab.spat = NULL, pch = 19, pt.cex = 0.75,
+  text.cex = 0.6, quartile.lwd = 1, quartile.col = "gray55",
+  peak.col = "gray27", labelID = FALSE, mt1 = "F", mt2 = "M", ...)
 }
 \arguments{
 \item{scene}{a matingScene object}
@@ -20,23 +21,33 @@ plotScene(scene, dimension = "auto", opening = NULL, closing = NULL,
 
 \item{dailyPoints}{logical indicating whether daily counts of individuals should be displayed for plots of the temporal dimension}
 
-\item{drawQuartiles}{logical indicating whether vertical lines should be drawn at population peak (the date when the maximum number of individuals were reproductively available) or quartiles}
+\item{drawQuartiles}{logical indicating whether vertical lines should be drawn at population peak (see details) or quartiles}
 
 \item{sub}{a vector containing the ids of individuals to be highlighted in the plots or a character string specifying how to choose individuals to highlight. Possible values are "random" or "all". If NULL, no subset will be identified in the plots.}
 
 \item{N}{a positive number, the number of individuals to sample if \code{sub} = 'random'}
 
-\item{xcoord}{label for x coordinate of spatial dimension plots. If NULL, defaults to 'easting'.}
+\item{xlab.spat}{character label for x-axis of spatial dimension plots. If NULL, defaults to 'easting'.}
 
-\item{ycoord}{label for y coordinate of spatial dimension plots. If NULL, defaults to 'northing'.}
+\item{ylab.spat}{character label for y-axis of spatial dimension plots. If NULL, defaults to 'northing'.}
 
-\item{pch}{specify point type to be used in plots. Defaults to pch = 19 (filled in circle). If NULL points will be labeled by id.}
+\item{pch}{specify point type to be used in plots. Defaults to pch = 19 (filled-in circle). If NULL, points will be labeled with their id.}
 
-\item{quartileWt}{if drawQuartiles = TRUE, specify weight of quartile and peak lines}
+\item{pt.cex}{specify point expansion factor (point size relative to device default)}
 
-\item{quartileColor}{if drawQuartiles = TRUE, specify color of quartile lines, defaults to 'gray81'}
+\item{text.cex}{specify text expansion factor (text size relative to device default)}
 
-\item{peakColor}{if drawQuartiles = TRUE, specify color of peak lines, defaults to 'gray27'}
+\item{quartile.lwd}{if \code{drawQuartiles} = TRUE, specifies weight of quartile and peak lines relative to device default.}
+
+\item{quartile.col}{if \code{drawQuartiles} = TRUE, specifies color of quartile lines, defaults to 'gray81'.}
+
+\item{peak.col}{if \code{drawQuartiles} = TRUE, specify color of peak lines, defaults to 'gray27'.}
+
+\item{labelID}{if TRUE, the y-axis will be labeled with the id of the corresponding segment.}
+
+\item{mt1}{label for mating type '1', if dioecious}
+
+\item{mt2}{label for mating type '2', if dioecious}
 
 \item{...}{standard graphical parameters}
 }
@@ -47,6 +58,9 @@ optional arguments for the plot function
 }
 \description{
 Visualize a mating scene
+}
+\details{
+Population peak is defined by when maximum number individuals were reproductively receptive on one day. If multiple days had the same maximum number, peak is defined as the median of these dates.
 }
 \examples{
 pop <- simulateScene()

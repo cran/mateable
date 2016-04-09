@@ -5,12 +5,16 @@ pair_si_ech <- function(s1, s2) {
     .Call('mateable_pair_si_ech', PACKAGE = 'mateable', s1, s2)
 }
 
-pair_dioecious <- function(s1, s2) {
-    .Call('mateable_pair_dioecious', PACKAGE = 'mateable', s1, s2)
+pair_dioecious <- function(s1) {
+    .Call('mateable_pair_dioecious', PACKAGE = 'mateable', s1)
 }
 
 row_medians <- function(toSort) {
     .Call('mateable_row_medians', PACKAGE = 'mateable', toSort)
+}
+
+row_kth <- function(toSort, k) {
+    .Call('mateable_row_kth', PACKAGE = 'mateable', toSort, k)
 }
 
 kemp_ind <- function(byDay, starts, ends, durs, compSelf = FALSE) {

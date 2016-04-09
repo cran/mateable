@@ -5,9 +5,7 @@ useDynLib(mateable)
 exportPattern("^[[:alnum:]]+$")
 importFrom(Rcpp, evalCpp)
 
-importFrom("grDevices", "colorRampPalette", "palette")
-importFrom("graphics", "abline", "arrows", "axis", "hist", "image",
-           "legend", "lines", "mtext", "par", "plot", "plot.default",
-           "points", "segments", "text", "title")
-importFrom("stats", "aggregate", "density", "dist", "median", "rnorm",
-           "runif", "sd")
+
+import(grDevices)
+import(graphics)
+import(stats)

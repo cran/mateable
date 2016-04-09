@@ -18,14 +18,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // pair_dioecious
-NumericMatrix pair_dioecious(IntegerVector s1, IntegerVector s2);
-RcppExport SEXP mateable_pair_dioecious(SEXP s1SEXP, SEXP s2SEXP) {
+NumericMatrix pair_dioecious(IntegerVector s1);
+RcppExport SEXP mateable_pair_dioecious(SEXP s1SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< IntegerVector >::type s1(s1SEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type s2(s2SEXP);
-    __result = Rcpp::wrap(pair_dioecious(s1, s2));
+    __result = Rcpp::wrap(pair_dioecious(s1));
     return __result;
 END_RCPP
 }
@@ -37,6 +36,18 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< NumericMatrix >::type toSort(toSortSEXP);
     __result = Rcpp::wrap(row_medians(toSort));
+    return __result;
+END_RCPP
+}
+// row_kth
+NumericVector row_kth(NumericMatrix toSort, int k);
+RcppExport SEXP mateable_row_kth(SEXP toSortSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type toSort(toSortSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    __result = Rcpp::wrap(row_kth(toSort, k));
     return __result;
 END_RCPP
 }

@@ -11,7 +11,7 @@
 ##' distance <- pairDist(pop)
 pairDist <- function(scene) {
   distMat <- as.matrix(dist(scene[, c("x", "y")]))
-  attr(distMat, "idOrder") <- attr(distMat, "dimnames")[[1]]
+  attr(distMat, "idOrder") <- scene$id
   attr(distMat, "dimnames") <- NULL
   distMat
 }
@@ -36,7 +36,7 @@ kNearNeighbors <- function(scene, k) {
   knnMatrix
 }
 
-##' Calculate one or several of measures of spatial proximity
+##' Calculate one of several measures of spatial proximity
 ##'
 ##' @title Make potentials object--spatial proximity
 ##' @param scene a matingScene object
@@ -48,6 +48,7 @@ kNearNeighbors <- function(scene, k) {
 ##' using the mean or median
 ##' @param subject whether you want pair, individual, population, or all.
 ##' Specifying more than one is allowed.
+##' @param zeroPotDist the distance at which potential should be equal to zero
 ##' @return A potentials object containing one more more of the following, depending the
 ##' input for \code{subject}: \cr
 ##' If \code{subject} is "population" the return list will contain a numeric
@@ -66,67 +67,85 @@ kNearNeighbors <- function(scene, k) {
 ##' pop <- simulateScene()
 ##' proximity(pop, "maxProp")
 proximity <- function(scene, method, proximityFun = NULL, averageType = "mean",
-                      subject = "all") {
+                      subject = "all", zeroPotDist = NULL) {
   method <- match.arg(method, c("maxProp", "maxPropSqrd"))
   subject <- match.arg(subject, c("all", "pair", "population", "individual"),
                        several.ok = TRUE)
-  n <- nrow(scene)
-  distMatrix <- pairDist(scene)
-  maxDist <- max(distMatrix)
-  if (averageType == "mean") {
-    average <- mean
-  } else if (averageType == "median") {
-    average <- median
-  }
-  # deal with pop size
-  if (n < 2) {
-    stop("Can't calculate proximity for population size less than 2")
-  }
-
-  if (method == "maxProp") {
-    if (subject %in% c("all", "pair")) {
-      pairProx <- 1 - distMatrix/maxDist
+  if (is.list(scene) & !is.data.frame(scene)) {
+    potential <- lapply(scene, proximity, method, proximityFun, averageType, subject)
+  } else {
+    n <- nrow(scene)
+    distMatrix <- pairDist(scene)
+    if (averageType == "mean") {
+      average <- mean
+    } else if (averageType == "median") {
+      average <- median
+    }
+    if (is.null(zeroPotDist)) {
+      zeroPotDist <- max(distMatrix)
+    }
+    # deal with pop size
+    if (n < 2) {
+      stop("Can't calculate proximity for population size less than 2")
     }
 
-    distNoDiag <- matrix(distMatrix[-seq(1, n^2, n+1)], nrow = n, byrow = T)
-    pairProx2 <- 1 - distNoDiag/maxDist
+    if (method == "maxProp") {
+      if (subject %in% c("all", "pair")) {
+        pairProx <- 1 - distMatrix/zeroPotDist
+      }
 
-    indProx <- data.frame(id = scene$id, proximity = -1)
-    indProx$proximity <- apply(pairProx2, 1, average)
+      distNoDiag <- distMatrix[-seq(1, n^2, n+1)]
+      distNoDiag[distNoDiag > zeroPotDist] <- zeroPotDist
+      distNoDiagMat <- matrix(distNoDiag, nrow = n, byrow = T)
+      pairProx2 <- 1 - distNoDiagMat/zeroPotDist
 
-    popProx <- average(indProx[,2])
-  } else if (method == "maxPropSqrd") {
-    if (subject %in% c("all", "pair")) {
-      pairProx <- (1 - distMatrix/maxDist)^2
+      indProx <- data.frame(id = scene$id, proximity = -1)
+      if (averageType == "mean") {
+        indProx$proximity <- rowMeans(pairProx2)
+      } else if (averageType == "median") {
+        indProx$proximity <- row_medians(pairProx2)
+      }
+
+      popProx <- average(indProx[,2])
+    } else if (method == "maxPropSqrd") {
+      if (subject %in% c("all", "pair")) {
+        pairProx <- (1 - distMatrix/zeroPotDist)^2
+      }
+
+      distNoDiag <- distMatrix[-seq(1, n^2, n+1)]
+      distNoDiag[distNoDiag > zeroPotDist] <- zeroPotDist
+      distNoDiagMat <- matrix(distNoDiag, nrow = n, byrow = T)
+      pairProx2 <- (1 - distNoDiagMat/zeroPotDist)^2
+
+      indProx <- data.frame(id = scene$id, proximity = -1)
+      if (averageType == "mean") {
+        indProx$proximity <- rowMeans(pairProx2)
+      } else if (averageType == "median") {
+        indProx$proximity <- row_medians(pairProx2)
+      }
+
+      popProx <- average(indProx[,2])
     }
 
-    distNoDiag <- matrix(distMatrix[-seq(1, n^2, n+1)], nrow = n, byrow = T)
-    pairProx2 <- (1 - distNoDiag/maxDist)^2
-
-    indProx <- data.frame(id = scene$id, proximity = -1)
-    indProx$proximity <- apply(pairProx2, 1, average)
-
-    popProx <- average(indProx[,2])
+    # return
+    potential <- list()
+    if ("population" %in% subject) {
+      potential$pop <- popProx
+    }
+    if ("individual" %in% subject) {
+      potential$ind <- indProx
+    }
+    if ("pair" %in% subject) {
+      potential$pair <- pairProx
+    }
+    if ("all" %in% subject) {
+      potential$pop <- popProx
+      potential$ind <- indProx
+      potential$pair <- pairProx
+    }
+    attr(potential, "t") <- FALSE
+    attr(potential, "s") <- TRUE
+    attr(potential, "c") <- FALSE
+    potential
   }
-
-  # return
-  potential <- list()
-  if ("population" %in% subject) {
-    potential$pop <- popProx
-  }
-  if ("individual" %in% subject) {
-    potential$ind <- indProx
-  }
-  if ("pair" %in% subject) {
-    potential$pair <- pairProx
-  }
-  if ("all" %in% subject) {
-    potential$pop <- popProx
-    potential$ind <- indProx
-    potential$pair <- pairProx
-  }
-  attr(potential, "t") <- FALSE
-  attr(potential, "s") <- TRUE
-  attr(potential, "c") <- FALSE
-  potential
 }

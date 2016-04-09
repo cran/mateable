@@ -1,4 +1,4 @@
-##' Calculate one or several of measures of mating compatibility.
+##' Calculate one of several measures of mating compatibility.
 ##'
 ##' @title Make potentials object--mating type compatibility
 ##' @param scene a matingScene object
@@ -18,7 +18,7 @@
 ##' a column containing compatibility averages. If \code{subject} is "all"
 ##' the return list will contain all three of the items above.
 ##' @details When \code{method} is "si_echinacea" compatibility will be
-##' calculated as self incompatible (si) in the same manner as Echinacea
+##' calculated as sporophytic self incompatible (si) in the same manner as Echinacea
 ##' (and many other plants). For two individuals, they are incompatible if
 ##' they share any S alleles (columns s1 and s2) and they compatible otherwise.
 ##' When \code{method} is "dioecious" it is assumed that the column s1 will
@@ -43,36 +43,57 @@ compatibility <- function(scene, method, subject = "all",
     average <- median
   }
 
-  if (method == "si_echinacea") {
-    pairCompat <- pair_si_ech(scene$s1, scene$s2)
+  if (is.list(scene) & !is.data.frame(scene)) {
+    potential <- lapply(scene, compatibility, method, subject, averageType)
+  } else {
 
-    indCompat <- data.frame(id = scene$id, compatibility = -1)
-    indCompat$compatibility <- apply(pairCompat, 1, average, na.rm = T)
+    if (method == "si_echinacea") {
+      pairCompat <- pair_si_ech(scene$s1, scene$s2)
+      attr(pairCompat, "idOrder") <- scene$id
 
-    popCompat <- average(indCompat$compatibility)
-  } else if (method == "dioecious") {
+      indCompat <- data.frame(id = scene$id, compatibility = -1)
+      if (averageType == "mean") {
+        indCompat$compatibility <- rowMeans(pairCompat)
+      } else if (averageType == "median") {
+        indCompat$compatibility <- row_medians(pairCompat)
+      }
+
+      popCompat <- average(indCompat$compatibility)
+    } else if (method == "dioecious") {
+      pairCompat <- pair_dioecious(scene$s1)
+      attr(pairCompat, "idOrder") <- scene$id
+      
+      indCompat <- data.frame(id = scene$id, compatibility = -1)
+      if (averageType == "mean") {
+        indCompat$compatibility <- rowMeans(pairCompat)
+      } else if (averageType == "median") {
+        indCompat$compatibility <- row_medians(pairCompat)
+      }
+      
+      popCompat <- average(indCompat$compatibility)
+    }
+
+    # return
+    potential <- list()
+    if ("population" %in% subject) {
+      potential$pop <- popCompat
+    }
+    if ("individual" %in% subject) {
+      potential$ind <- indCompat
+    }
+    if ("pairwise" %in% subject) {
+      potential$pair <- pairCompat
+    }
+    if ("all" %in% subject) {
+      potential$pop <- popCompat
+      potential$ind <- indCompat
+      potential$pair <- pairCompat
+
+    }
+    attr(potential, "t") <- FALSE
+    attr(potential, "s") <- FALSE
+    attr(potential, "c") <- TRUE
+    potential
 
   }
-
-  # return
-  potential <- list()
-  if ("population" %in% subject) {
-    potential$pop <- popCompat
-  }
-  if ("individual" %in% subject) {
-    potential$ind <- indCompat
-  }
-  if ("pairwise" %in% subject) {
-    potential$pair <- pairCompat
-  }
-  if ("all" %in% subject) {
-    potential$pop <- popCompat
-    potential$ind <- indCompat
-    potential$pair <- pairCompat
-  }
-  attr(potential, "t") <- FALSE
-  attr(potential, "s") <- FALSE
-  attr(potential, "c") <- TRUE
-  potential
-
 }

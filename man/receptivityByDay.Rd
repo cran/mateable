@@ -4,16 +4,21 @@
 \alias{receptivityByDay}
 \title{Mating Receptivity by Day}
 \usage{
-receptivityByDay(scene)
+receptivityByDay(scene, summary = FALSE, nameDate = TRUE)
 }
 \arguments{
 \item{scene}{a matingScene object}
+
+\item{summary}{logical, summarizes number of receptive individuals on each day}
+
+\item{nameDate}{logical, if summary = TRUE, option to name indices of the vector by the date they represent (rather than named relative to first day of receptivity in a season)}
 }
 \value{
-a matrix where the columns represent all mating days and the rows
-represent all individuals in the population. The value at position
+if summary = FALSE (default), a matrix where the columns represent all mating days and the rows
+represent all individuals in the population. If summary = TRUE, a named vector where each index gives the
+number of receptive individuals on a given day and is named by the day it represents. If a matrix, the value at position
 [i,j] will be TRUE if individual j was receptive on day i \cr
-If scene is a multi-year matingScene, then overlap will return a list of matrices
+If scene is a multi-year matingScene, then receptivityByDay will return a list of matrices
 (as described above) where each matrix represents one year.
 }
 \description{

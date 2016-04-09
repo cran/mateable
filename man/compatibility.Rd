@@ -30,11 +30,11 @@ a column containing compatibility averages. If \code{subject} is "all"
 the return list will contain all three of the items above.
 }
 \description{
-Calculate one or several of measures of mating compatibility.
+Calculate one of several measures of mating compatibility.
 }
 \details{
 When \code{method} is "si_echinacea" compatibility will be
-calculated as self incompatible (si) in the same manner as Echinacea
+calculated as sporophytic self incompatible (si) in the same manner as Echinacea
 (and many other plants). For two individuals, they are incompatible if
 they share any S alleles (columns s1 and s2) and they compatible otherwise.
 When \code{method} is "dioecious" it is assumed that the column s1 will

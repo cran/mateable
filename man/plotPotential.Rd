@@ -4,27 +4,23 @@
 \alias{plotPotential}
 \title{graphical visualization of a mating potential object}
 \usage{
-plotPotential(matPot, subject = c("pair", "ind"), plotType = "auto",
-  showDensity = T, sub.ids = NULL, N = 9, sample = "random",
-  lab.cex = 0.5, main = NULL, ...)
+plotPotential(matPot, subject = NULL, plotType = "auto", density = T,
+  sub.ids = NULL, N = 9, sample = "random", main = NULL, ...)
 }
 \arguments{
 \item{matPot}{a mating potential object}
 
-\item{subject}{a character string indicating whether the subject to be visualized is individuals or all pairwise interactions}
+\item{subject}{character, either 'ind' or 'pair', indicating whether the subject being visualized is individuals or pairwise interactions}
 
-\item{plotType}{a character string indivating the plots to be displayed. Options are histogram ('hist'), network diagram ('net')}
+\item{plotType}{character,  indicating what plots are to be displayed. See details. Options are histogram ('hist'), network diagram ('net'), and heatmap ('heat'). If mating potential object}
 
-\item{showDensity}{logical. If true (default), plots probability density over histogram.}
+\item{density}{logical. If TRUE (default), plots probability density over histogram.}
 
 \item{sub.ids}{a vector containing the ids of individuals to be represented in pairwise potential plots}
 
-\item{N}{a positive number, the number of individuals to sample if sub.ids = 'random'}
+\item{N}{a positive number indicating the number of individuals to sample if sub.ids = 'random'}
 
-\item{sample}{a character string specifying how to choose a subset of individuals to be represented in pairwise potential plots. Possible values are "random" (default) or "all".}
-
-\item{lab.cex}{parameter indicating label size relative to plot
-(different than cex.lab)}
+\item{sample}{a character string specifying how to choose a subset of individuals to be represented in pairwise potential plots. Possible values are "random" (default) or "all" (see details).}
 
 \item{main}{the main title (on top of plot)}
 
@@ -33,12 +29,19 @@ plotPotential(matPot, subject = c("pair", "ind"), plotType = "auto",
 \description{
 Visualize mating potential
 }
+\details{
+Options for \code{plotType} are 'hist' (histogram), 'net' (network diagram), 'heat' (heatmap), and 'auto'. Default value is 'auto':
+if the mating potential object contains pairwise potential, 'auto' returns all plot types, otherwise it returns histograms of individual potential.
+
+The individuals to be represented in the pairwise potential plots can either be specified explicitly through \code{sub.ids}, chosen randomly
+ (\code{sample} = 'random'), or all individuals can be selected (\code{sample} = 'all'). The default is to randonly select 9 individuals.
+ If multiple years are being plotted, the subset is sampled from all years and the same individuals will be represented in each year, if possible.
+ If fewer than three individuals from the subset are available in a year, no network diagram or heatmap will be returned for that year.
+}
 \examples{
 pop <- simulateScene()
 sync <- synchrony(pop, "augs")
 plotPotential(sync)
-
-
 }
 \author{
 Amy Waananen

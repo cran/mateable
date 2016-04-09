@@ -4,7 +4,7 @@
 \name{mateable-package}
 \alias{mateable}
 \alias{mateable-package}
-\title{A package to simulate, manage, visualize, and jointly analyze spatially and
+\title{Tools to simulate, manage, visualize, and jointly analyze spatially and
 temporally explicit datasets of mating potential}
 \description{
 This package faciltates the investigation of three dimensions of mating

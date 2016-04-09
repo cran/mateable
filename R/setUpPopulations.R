@@ -32,7 +32,11 @@ simulateScene <- function(size = 30, meanSD = "2012-07-12", sdSD = 6, meanDur = 
   xv <- runif(size, min = xRange[1], max = xRange[2])
   yv <- runif(size, min = yRange[1], max = yRange[2])
   sM <- sample(x = 1:sAlleles, size = size, replace = TRUE)
-  sP <- sapply(sM, FUN = function(x) sample((1:sAlleles)[-x], 1))
+  if (sAlleles == 2) {
+    sP <- 3 - sM
+  } else {
+    sP <- sapply(sM, FUN = function(x) sample((1:sAlleles)[-x], 1))
+  }
   df <- data.frame(id = 1:size, start = sd, end = ed, x = xv,
                    y = yv, s1 = sM, s2 = sP)
   makeScene(df, startCol = "start", endCol = "end", xCol = "x", yCol = "y",
@@ -101,7 +105,7 @@ makeScene <- function (df, multiYear = FALSE, startCol = "start", endCol = "end"
     years <- levels(as.factor(df$year))
     newScene <- list()
     for (i in 1:length(years)) {
-      newScene[[paste("y", years[i], sep = "")]] <-
+      newScene[[as.character(years[i])]] <-
         makeScene(df[df$year %in% years[i],], F, startCol, endCol, xCol, yCol,
                   s1Col, s2Col, idCol, dateFormat)
     }

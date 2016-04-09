@@ -1,4 +1,4 @@
-#' A package to simulate, manage, visualize, and jointly analyze spatially and
+#' Tools to simulate, manage, visualize, and jointly analyze spatially and
 #' temporally explicit datasets of mating potential
 #'
 #' This package faciltates the investigation of three dimensions of mating
