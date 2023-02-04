@@ -24,4 +24,3 @@ distance <- pairDist(pop)
 \seealso{
 \code{\link{dist}}
 }
-

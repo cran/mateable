@@ -4,17 +4,20 @@
 \alias{proximity}
 \title{Make potentials object--spatial proximity}
 \usage{
-proximity(scene, method, proximityFun = NULL, averageType = "mean",
-  subject = "all", zeroPotDist = NULL)
+proximity(
+  scene,
+  method,
+  averageType = "mean",
+  subject = "all",
+  zeroPotDist = NULL,
+  k = 6
+)
 }
 \arguments{
 \item{scene}{a matingScene object}
 
-\item{method}{one of "maxProp", and "maxPropSqrd" see details for
+\item{method}{one of "maxProp", "maxPropSqrd", or 'knn.dist'; see details for
 further description}
-
-\item{proximityFun}{a function used to calculate proximity. Not yet
-implemented}
 
 \item{averageType}{whether to calculate individual and population proximity
 using the mean or median}
@@ -23,6 +26,8 @@ using the mean or median}
 Specifying more than one is allowed.}
 
 \item{zeroPotDist}{the distance at which potential should be equal to zero}
+
+\item{k}{the number of the nearest neighbor to search, if \code{method} is "knn.dist". Defaults to 6, but must be less than population size.}
 }
 \value{
 A potentials object containing one more more of the following, depending the
@@ -42,7 +47,8 @@ Calculate one of several measures of spatial proximity
 If \code{method} is "maxProp" then proximity between two
 individuals will be calculated as 1 - distance/max(distance).
 If \code{method} is "maxPropSqrd" then proximity between two
-individuals will be calculated as (1 - distance/max(distance))^2.
+individuals will be calculated as (1 - distance/max(distance))^2. If \code{method} is
+"knn.dist" then the function This uses \code{FNN::knn.dist} to return the Euclidian distance of the kth nearest neighbor.
 }
 \examples{
 pop <- simulateScene()
@@ -51,4 +57,3 @@ proximity(pop, "maxProp")
 \author{
 Danny Hanson
 }
-

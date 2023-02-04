@@ -4,8 +4,16 @@
 \alias{plot3DPotential}
 \title{graphical visualization of multiple mating potential objects}
 \usage{
-plot3DPotential(matPots, subject = NULL, density = TRUE, sub.ids = NULL,
-  N = 3, sample = NA, main = NULL, text.cex = 0.7, pt.cex = 0.7)
+plot3DPotential(
+  matPots,
+  subject = NULL,
+  density = TRUE,
+  sub.ids = NULL,
+  N = 3,
+  sample = NA,
+  text.cex = 0.7,
+  pt.cex = 0.7
+)
 }
 \arguments{
 \item{matPots}{list, contains one or multiple mating potential objects representing unique potential dimensions}
@@ -20,11 +28,12 @@ plot3DPotential(matPots, subject = NULL, density = TRUE, sub.ids = NULL,
 
 \item{sample}{character, specifies how to sample individuals to be represented in pairwise potential plots. Possible values are "random" (default) or "all". See details.}
 
-\item{main}{character, the main plot title, if NULL, defaults to 'individual potential' or 'pairwise potential,' corresponding to \code{subject}}
-
 \item{text.cex}{specify text expansion factor (text size relative to device default)}
 
 \item{pt.cex}{specify point expansion factor (point size relative to device default)}
+}
+\value{
+No return value, called to draw a plot
 }
 \description{
 Visualize multiple dimensions of mating potential
@@ -32,9 +41,8 @@ Visualize multiple dimensions of mating potential
 \details{
 The individuals to be represented in the pairwise potential plots can either be specified explicitly
 through \code{sub.ids}, chosen randomly (\code{sample} = 'random'), or all individuals can be selected (\code{sample} = 'all').
-The default is to randonly select 9 individuals. If multiple years are being plotted, the subset is sampled from all years
-and the same individuals will be represented in each year, if possible. If fewer than three individuals from the subset are available in a year,
-no network diagram or heatmap will be returned for that year.
+The default is to randomly select 9 individuals. If multiple years are being plotted, the subset is sampled from all years
+and the same individuals will be represented in each year, if possible.
 }
 \examples{
 pop <- simulateScene()
@@ -43,10 +51,9 @@ prox <- proximity(pop, 'maxProp')
 compat <- compatibility(pop, 'si_echinacea')
 plot3DPotential(list(sync,prox,compat), subject = 'ind')
 }
-\author{
-Amy Waananen
-}
 \seealso{
 see generic function \code{\link{points}} for values of \code{pch}
 }
-
+\author{
+Amy Waananen
+}

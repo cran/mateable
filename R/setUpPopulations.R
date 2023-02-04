@@ -19,7 +19,6 @@
 ##' @author Stuart Wagenius
 ##' @examples
 ##' simulateScene()
-##' \dontrun{simulateScene(NULL)}
 simulateScene <- function(size = 30, meanSD = "2012-07-12", sdSD = 6, meanDur = 11,
                           sdDur = 3, skSD = 0 ,xRange = c(0, 100), yRange = c(0, 100),
                           distro = "unif", sAlleles = 10) {
@@ -58,16 +57,19 @@ simulateScene <- function(size = 30, meanSD = "2012-07-12", sdSD = 6, meanDur = 
 ##' @param s1Col character name of one column with S-allele
 ##' @param s2Col character name of another column with S-alleles
 ##' @param idCol character name for column with unique identifier
+##' @param otherCols character vector of column(s) to include besides the
+##' necessary ones for the mating scene. If NULL, it will be ignored.
 ##' @param dateFormat character indicating either (1) the format of the start and end
 ##' date columns if those columns are characters or (2) the origin for the start
 ##' and end date columns if those columns are numeric. It is used in as.Date
+##' @param split character name for a column with values by which the result should be split
 ##'
 ##' @return a matingScene object, either a single dataframe in standard format
 ##' or a list of dataframes. Attributes of the matingScene object indicate the type of
 ##' information in the data frame, including the original column names,
 ##' and the origin of the date columns. If multiYear = TRUE,
 ##' the return value will be a list of matingScene data frames where each
-##' element in the list represents one year. See details for more information
+##' element in the list represents one year. If split is specified, the return value will be a list of matingScene data frames where each element in the list represents a value of the specified variable. See details for more information
 ##' on attributes and how to work with multi-year data.
 ##' @details The input dataframe can contain information about locations of
 ##' individuals in 1, 2, or 3 dimensions of a mating scenes.
@@ -89,12 +91,13 @@ simulateScene <- function(size = 30, meanSD = "2012-07-12", sdSD = 6, meanDur = 
 ##' from integers to dates.\cr
 ##' If no temporal data are available except the year in which it was
 ##' collected and df is a multi-year data set, put the collection year into the
-##' column labelled as startCol and set dateFormat = "%Y" and that will split
+##' column labeled as startCol and set dateFormat = "%Y" and that will split
 ##' the data appropriately.
 ##' @author Danny Hanson
-makeScene <- function (df, multiYear = FALSE, startCol = "start", endCol = "end", xCol = "x",
-                       yCol = "y", s1Col = "s1", s2Col = "s2", idCol = "id",
-                       dateFormat = "%Y-%m-%d") {
+makeScene <- function (df, multiYear = FALSE, startCol = "start", endCol = "end",
+                       xCol = "x", yCol = "y", s1Col = "s1", s2Col = "s2",
+                       idCol = "id", otherCols = NULL, dateFormat = "%Y-%m-%d",
+                       split = NULL) {
   if (multiYear) {
     if (dateFormat == "%Y") {
       dates <- as.Date(as.character(df[, startCol]), dateFormat)
@@ -106,8 +109,16 @@ makeScene <- function (df, multiYear = FALSE, startCol = "start", endCol = "end"
     newScene <- list()
     for (i in 1:length(years)) {
       newScene[[as.character(years[i])]] <-
-        makeScene(df[df$year %in% years[i],], F, startCol, endCol, xCol, yCol,
-                  s1Col, s2Col, idCol, dateFormat)
+        makeScene(df[df$year %in% years[i],], FALSE, startCol, endCol, xCol, yCol,
+                  s1Col, s2Col, idCol, otherCols, dateFormat, split)
+    }
+  } else if(!is.null(split)){
+    splitTo <- levels(as.factor(df[,split]))
+    newScene <- list()
+    for (i in 1:length(splitTo)){
+      newScene[[as.character(splitTo[i])]] <-
+        makeScene(df[df[,split] %in% splitTo[i],], FALSE, startCol, endCol, xCol, yCol,
+                  s1Col, s2Col, idCol, otherCols, dateFormat)
     }
   } else {
     newScene <- data.frame(id = character(nrow(df)))
@@ -147,6 +158,9 @@ makeScene <- function (df, multiYear = FALSE, startCol = "start", endCol = "end"
       newScene$s2 <- as.factor(df[, s2Col])
     }
 
+    if (!is.null(otherCols)) {
+      newScene[, otherCols] <- df[, otherCols]
+    }
     # not going to add this for now because it's unlikely we'll make our
     # own generics or use oop
     # class(newScene) <- "matingScene"

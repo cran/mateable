@@ -4,7 +4,13 @@
 \alias{matingSummary}
 \title{Summarize a Mating Scene}
 \usage{
-matingSummary(scene, type = "auto", k = 1, compatMethod = "si_echinacea")
+matingSummary(
+  scene,
+  type = "auto",
+  k = 1,
+  compatMethod = "si_echinacea",
+  as.data.frame = FALSE
+)
 }
 \arguments{
 \item{scene}{a matingScene object}
@@ -17,9 +23,11 @@ all mating information in scene}
 
 \item{compatMethod}{character indicating the method to use when calculating
 compatiblity. Defaults to "si_echinacea"}
+
+\item{as.data.frame}{logical. If TRUE, returns summary as a dataframe.}
 }
 \value{
-a list or a list of lists containing summary information
+a list, list of lists, or dataframe containing summary information
 including:\cr
 temporal - year (year), population start date (popSt), mean individual start date
 (meanSD), standard deviation of start (sdSD), mean duration (meanDur),
@@ -33,14 +41,14 @@ compatibility - number of mating types (nMatType), average number of
 compatible mates (meanComp)\cr
 If scene is a multi-year matingScene, then the output will be a list
 of lists, one list for each year.
+If \code{as.data.frame = TRUE}, the output will be a dataframe with columns containing summary information and, if applicable, an 'id' column identifying what portion of the matingSummary object it summarized. If the scene is a multi-year matingScene, then the output will be a list of dataframes, one list for each year.
 }
 \description{
 Create a summary of information contained within a matingScene object.
 }
 \examples{
-eelr <- makeScene(eelr2012, startCol = "firstDay", endCol = "lastDay",
+eelr <- makeScene(ech2012, startCol = "firstDay", endCol = "lastDay",
   xCol = "Ecoord", yCol = "Ncoord", idCol = "tagNo")
 eelrSum <- matingSummary(eelr)
 eelrSum[c("minX", "minY", "maxX", "maxY")]
 }
-

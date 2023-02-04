@@ -4,8 +4,16 @@
 \alias{synchrony}
 \title{Make potentials object--mating synchrony}
 \usage{
-synchrony(scene, method, subject = "all", averageType = "mean",
-  syncNN = 1, compareToSelf = FALSE, frame = "within")
+synchrony(
+  scene,
+  method,
+  subject = "all",
+  averageType = "mean",
+  syncNN = 1,
+  compareToSelf = FALSE,
+  frame = "within",
+  resolution = "daily"
+)
 }
 \arguments{
 \item{scene}{a matingScene object that includes the flowering schedule for the
@@ -21,16 +29,16 @@ described in Kempenaers (1993). "sync_prop" will calculate individual
 calculate a synchrony value based on the number of days both
 individuals were flowering divided by the number of days either individual
 was available for mating. "sync_nn" gives the average of the kth nearest
-neighbor, or rather the kth most synchronous individual. "simple1" will
+neighbor, or rather the kth most synchronous individual. "peak-n" will
 calculate the number of individuals receptive on the peak day
 (day with highest mating receptivity) divided by the number of individuals
-in the population. "simple2" will calculate the number of individuals
+in the population. "peak-observations" will calculate the number of individuals
 receptive on the peak day divided by the total number of observations -
 this method is useful for comparing to data that has no information on
-individuals. "simple3" calculates the average (determined by argument
+individuals. "average-peak" calculates the average (determined by argument
 \code{averageType}) number of individuals receptive
 per day divided by the maximum number of individuals receptive per day.
-All "simple" methods do not have pairwise or individual values.}
+All "simple" methods do not have pairwise or individual values. "mean_interactions" gives the mean number of potential mating interactions an individual obtains per unit time for the period that the individual was flowering.}
 
 \item{subject}{one of "population", "pairwise", "individual", or "all"
 - see Value for more details.}
@@ -49,6 +57,9 @@ when calculation synchrony. Defaults to FALSE.}
 \item{frame}{the timeframe that synchrony is to be calculated over; options are 'within,'
 for synchrony within a season, or 'between,' for synchrony across multiple seasons.
 Defaults to 'within'.}
+
+\item{resolution}{if \code{method = sync_prop}, indicates whether temporal resolution
+should be yearly or daily}
 }
 \value{
 A potentials object containing one more more of the following, depending the
@@ -82,9 +93,6 @@ synchrony(pop, "augs")
 pop2 <- simulateScene(size = 1234, sdDur = 5, sk = 1)
 syncVals <- synchrony(pop2, "sync_nn", "all", "median", 123)
 }
-\author{
-Danny Hanson
-}
 \references{
 Augspurger, C.K. (1983) Phenology, flowering synchrony, and fruit set of
 six neotropical shrubs. \emph{Biotropica} \strong{15}, 257-267. \cr\cr
@@ -95,4 +103,6 @@ their flowering synchrony and spatial proximity.
 Kempenaers, B. (1993) The use of a breeding synchrony index.
 \emph{Ornis Scandinavica}, \strong{24}, 1.
 }
-
+\author{
+Danny Hanson, Amy Waananen
+}

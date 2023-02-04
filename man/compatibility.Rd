@@ -49,4 +49,3 @@ compatibility(pop, "si_echinacea")
 \author{
 Danny Hanson
 }
-

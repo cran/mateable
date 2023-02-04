@@ -2,6 +2,7 @@
 #include <algorithm>
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 IntegerMatrix daysSync_noself(IntegerVector starts, IntegerVector ends, int n) {
   IntegerMatrix syncMatrix(n, n-1);
@@ -21,6 +22,7 @@ IntegerMatrix daysSync_noself(IntegerVector starts, IntegerVector ends, int n) {
   return syncMatrix;
 }
 
+//' @export
 // [[Rcpp::export]]
 IntegerMatrix daysSync_self(IntegerVector starts, IntegerVector ends, int n) {
   IntegerMatrix syncMatrix(n, n);
@@ -40,6 +42,7 @@ IntegerMatrix daysSync_self(IntegerVector starts, IntegerVector ends, int n) {
   return syncMatrix;
 }
 
+//' @export
 // [[Rcpp::export]]
 IntegerMatrix daysEither_noself(IntegerVector starts, IntegerVector ends, int n) {
   IntegerMatrix eitherMatrix(n, n-1);
@@ -65,6 +68,7 @@ IntegerMatrix daysEither_noself(IntegerVector starts, IntegerVector ends, int n)
   return eitherMatrix;
 }
 
+//' @export
 // [[Rcpp::export]]
 IntegerMatrix daysEither_self(IntegerVector starts, IntegerVector ends, int n) {
   IntegerMatrix eitherMatrix(n, n);

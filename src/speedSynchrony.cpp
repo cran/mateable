@@ -2,6 +2,7 @@
 #include <algorithm>
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 NumericVector row_medians(NumericMatrix toSort) {
   int n = toSort.rows();
@@ -23,6 +24,7 @@ NumericVector row_medians(NumericMatrix toSort) {
   return meds;
 }
 
+//' @export
 // [[Rcpp::export]]
 NumericVector row_kth(NumericMatrix toSort, int k) {
   int n = toSort.rows();
@@ -36,6 +38,7 @@ NumericVector row_kth(NumericMatrix toSort, int k) {
   return meds;
 }
 
+//' @export
 // [[Rcpp::export]]
 NumericVector kemp_ind(IntegerVector byDay, IntegerVector starts,
                        IntegerVector ends, IntegerVector durs,

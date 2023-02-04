@@ -34,7 +34,7 @@ compatibility <- function(scene, method, subject = "all",
 
   method <- match.arg(method, c("si_echinacea", "dioecious"))
   subject <- match.arg(subject, c("population", "pairwise",
-                                  "individual", "all"), several.ok = T)
+                                  "individual", "all"), several.ok = TRUE)
   averageType <- match.arg(averageType, c("mean", "median"))
 
   if (averageType == "mean") {
@@ -62,14 +62,14 @@ compatibility <- function(scene, method, subject = "all",
     } else if (method == "dioecious") {
       pairCompat <- pair_dioecious(scene$s1)
       attr(pairCompat, "idOrder") <- scene$id
-      
+
       indCompat <- data.frame(id = scene$id, compatibility = -1)
       if (averageType == "mean") {
         indCompat$compatibility <- rowMeans(pairCompat)
       } else if (averageType == "median") {
         indCompat$compatibility <- row_medians(pairCompat)
       }
-      
+
       popCompat <- average(indCompat$compatibility)
     }
 

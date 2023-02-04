@@ -1,7 +1,7 @@
 # if using roxygen, make sure it doesn't create the NAMESPACE
 # or this will be deleted
 
-useDynLib(mateable)
+useDynLib(mateable, .registration = TRUE)
 exportPattern("^[[:alnum:]]+$")
 importFrom(Rcpp, evalCpp)
 
@@ -9,3 +9,4 @@ importFrom(Rcpp, evalCpp)
 import(grDevices)
 import(graphics)
 import(stats)
+import(FNN)

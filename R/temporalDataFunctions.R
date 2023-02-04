@@ -9,7 +9,8 @@
 ##' @param k integer. Which nearest neighbor to calculate (only for type == "s")
 ##' @param compatMethod character indicating the method to use when calculating
 ##' compatiblity. Defaults to "si_echinacea"
-##' @return a list or a list of lists containing summary information
+##' @param as.data.frame logical. If TRUE, returns summary as a dataframe.
+##' @return a list, list of lists, or dataframe containing summary information
 ##' including:\cr
 ##' temporal - year (year), population start date (popSt), mean individual start date
 ##' (meanSD), standard deviation of start (sdSD), mean duration (meanDur),
@@ -23,15 +24,17 @@
 ##' compatible mates (meanComp)\cr
 ##' If scene is a multi-year matingScene, then the output will be a list
 ##' of lists, one list for each year.
+##' If \code{as.data.frame = TRUE}, the output will be a dataframe with columns containing summary information and, if applicable, an 'id' column identifying what portion of the matingSummary object it summarized. If the scene is a multi-year matingScene, then the output will be a list of dataframes, one list for each year.
 ##' @examples
-##' eelr <- makeScene(eelr2012, startCol = "firstDay", endCol = "lastDay",
+##' eelr <- makeScene(ech2012, startCol = "firstDay", endCol = "lastDay",
 ##'   xCol = "Ecoord", yCol = "Ncoord", idCol = "tagNo")
 ##' eelrSum <- matingSummary(eelr)
 ##' eelrSum[c("minX", "minY", "maxX", "maxY")]
 matingSummary <- function(scene, type = "auto", k = 1,
-                          compatMethod = "si_echinacea") {
+                          compatMethod = "si_echinacea",
+                          as.data.frame = FALSE) {
   if (is.list(scene) & !is.data.frame(scene)) {
-    matSum <- lapply(scene, matingSummary)
+    matSum <- lapply(scene, matingSummary, type = type, k = k, compatMethod = compatMethod)
   } else {
     type <- match.arg(type, c("auto", "t", "s", "mt"))
     matSum <- list()
@@ -44,11 +47,11 @@ matingSummary <- function(scene, type = "auto", k = 1,
       spat <- F
       comp <- F
       if (type == "t") {
-        temp <- T
+        temp <- TRUE
       } else if (type == "s") {
-        spat <- T
+        spat <- TRUE
       } else if (type == "mt") {
-        comp <- T
+        comp <- TRUE
       }
     }
     if (temp) {
@@ -75,9 +78,12 @@ matingSummary <- function(scene, type = "auto", k = 1,
     }
     if (comp) {
       matSum$nMatType <- length(union(levels(scene$s1), levels(scene$s2)))
-
       matSum$meanComp <- compatibility(scene, compatMethod)$pop * 100
     }
+    matSum$n <- nrow(scene)
+  }
+  if(as.data.frame){
+    matSum <- matingSummary.df(matSum)
   }
   matSum
 }
@@ -151,7 +157,7 @@ overlap <- function(scene, overlapOrTotal = c("overlap", "total"),
 ##' [i,j] will be TRUE if individual j was receptive on day i \cr
 ##' If scene is a multi-year matingScene, then receptivityByDay will return a list of matrices
 ##' (as described above) where each matrix represents one year.
-##' @author Danny Hanson
+##' @author Danny Hanson, Amy Waananen
 ##' @examples
 ##' pop <- simulateScene(size = 10)
 ##' receptivityByDay(pop)
@@ -165,10 +171,10 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
     nID <- length(ids)
     nDay <- length(days)
 
-    dailyMatrix <- matrix(F, nrow = nID, ncol = nDay)
+    dailyMatrix <- matrix(FALSE, nrow = nID, ncol = nDay)
     # for a given individual, say what days it was flowering on
     for (i in 1:nID) {
-      dailyMatrix[i, scene[i, "start"]:scene[i, "end"]] <- T
+      dailyMatrix[i, scene[i, "start"]:scene[i, "end"]] <- TRUE
     }
 
     rownames(dailyMatrix) <- ids
@@ -178,7 +184,7 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
     if(summary){
       dailyVector <- colSums(dailyMatrix)
       if (nameDate){
-        names(dailyVector) <- as.Date(as.numeric(names(dailyVector))+attr(dailyMatrix,'origin')-1)
+        names(dailyVector) <- as.numeric(names(dailyVector)) + as.Date(attr(dailyMatrix,'origin'), format = '%Y-%m-%d')
       }
       dailyReceptivity <- dailyVector
     } else{
@@ -203,16 +209,16 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
 ##' calculate a synchrony value based on the number of days both
 ##' individuals were flowering divided by the number of days either individual
 ##' was available for mating. "sync_nn" gives the average of the kth nearest
-##' neighbor, or rather the kth most synchronous individual. "simple1" will
+##' neighbor, or rather the kth most synchronous individual. "peak-n" will
 ##' calculate the number of individuals receptive on the peak day
 ##' (day with highest mating receptivity) divided by the number of individuals
-##' in the population. "simple2" will calculate the number of individuals
+##' in the population. "peak-observations" will calculate the number of individuals
 ##' receptive on the peak day divided by the total number of observations -
 ##' this method is useful for comparing to data that has no information on
-##' individuals. "simple3" calculates the average (determined by argument
+##' individuals. "average-peak" calculates the average (determined by argument
 ##' \code{averageType}) number of individuals receptive
 ##' per day divided by the maximum number of individuals receptive per day.
-##' All "simple" methods do not have pairwise or individual values.
+##' All "simple" methods do not have pairwise or individual values. "mean_interactions" gives the mean number of potential mating interactions an individual obtains per unit time for the period that the individual was flowering.
 ##' @param subject one of "population", "pairwise", "individual", or "all"
 ##' - see Value for more details.
 ##' @param averageType character. Identifies whether to take the mean or median
@@ -226,6 +232,8 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
 ##' @param frame the timeframe that synchrony is to be calculated over; options are 'within,'
 ##' for synchrony within a season, or 'between,' for synchrony across multiple seasons.
 ##' Defaults to 'within'.
+##' @param resolution if \code{method = sync_prop}, indicates whether temporal resolution
+##' should be yearly or daily
 ##' @return A potentials object containing one more more of the following, depending the
 ##' input for \code{subject}: \cr
 ##' If \code{subject} is "population" \code{synchrony} will return a numeric
@@ -245,7 +253,7 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
 ##' Kempenaers (1983), and from Ison et al. (2014), as well
 ##' as variations on different factors of those measures.
 ##' @export
-##' @author Danny Hanson
+##' @author Danny Hanson, Amy Waananen
 ##' @references Augspurger, C.K. (1983) Phenology, flowering synchrony, and fruit set of
 ##' six neotropical shrubs. \emph{Biotropica} \strong{15}, 257-267. \cr\cr
 ##' Ison, J.L., S. Wagenius, D. Reitz., M.V. Ashley. (2014) Mating between
@@ -261,14 +269,15 @@ receptivityByDay <- function(scene, summary = FALSE, nameDate = TRUE) {
 ##' pop2 <- simulateScene(size = 1234, sdDur = 5, sk = 1)
 ##' syncVals <- synchrony(pop2, "sync_nn", "all", "median", 123)
 synchrony <- function(scene, method, subject = "all", averageType = "mean",
-                      syncNN = 1, compareToSelf = FALSE, frame = 'within') {
+                      syncNN = 1, compareToSelf = FALSE,
+                      frame = 'within', resolution = 'daily') {
 
   method <- match.arg(method, c("augspurger", "kempenaers", "sync_prop",
-                                "overlap", "sync_nn", "simple1", "simple2",
-                                "simple3"))
+                                "overlap", "sync_nn", "peak-n", "peak-observations",
+                                "average-peak", 'mean_interactions'))
   subject <- match.arg(subject, c("population", "pairwise",
                                   "individual", "all"),
-                       several.ok = T)
+                       several.ok = TRUE)
   averageType <- match.arg(averageType, c("mean", "median"))
 
   if (averageType == "mean") {
@@ -279,37 +288,51 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
 
   if (is.list(scene) & !is.data.frame(scene)) {
     if(frame == 'between'){
-      if(method =='sync_prop'){
-        minStart <- function(x) min(x$start) + attr(x,'origin')
-        maxEnd <- function(x) max(x$end) + attr(x,'origin')
+      if(method =='sync_prop' | method == 'mean_interactions'){
+        if(resolution =='yearly'){
+          ids <- sort(unique(unlist(lapply(scene, function(x)x$id))))
+          fl <- matrix(nrow = length(ids),ncol = length(scene))
+          for (i in 1:length(ids)){
+            id <- ids[i]
+            fl[i,] <- unlist(lapply(scene, function(l) ifelse(id %in% l$id, TRUE, FALSE)))
+          }
+        } else {
+          minStart <- function(x) min(x$start) + attr(x,'origin')
+          maxEnd <- function(x) max(x$end) + attr(x,'origin')
+          allDays <- as.Date(min(unlist(lapply(scene, minStart))), origin = '1970-01-01'):as.Date(max(unlist(lapply(scene, maxEnd))), origin = '1970-01-01')
+          ids <- sort(unique(unlist(lapply(scene,function(x)unique(x$id)))))
+          fl <- matrix(nrow = length(ids), ncol = length(allDays),dimnames = list(ids,allDays))
 
-        allDays <- as.Date(min(unlist(lapply(scene, minStart))), origin = '1970-01-01'):as.Date(max(unlist(lapply(scene, maxEnd))), origin = '1970-01-01')
-        ids <- unique(unlist(lapply(scene,function(x)unique(x$id))))
-        fl <- matrix(nrow = length(ids), ncol = length(allDays),dimnames = list(ids,allDays))
-
-        l2df <- function(x,id){
-          out <- x[x$id == id,]
-          out$start <- out$start+attr(x,'origin')
-          out$end <- out$end + attr(x, 'origin')
-          return(out)
-        }
-
-        for (i in 1:length(ids)){
-          id <- ids[i]
-          l <- do.call('rbind',lapply(scene,l2df,id = id))
-          for (j in 1:nrow(l)){
-            dfl <- l[j,'start']:l[j,'end']
-            index <- dfl-min(allDays)+1
-            fl[i,index] <- T
+          l2df <- function(x,id){
+            out <- x[x$id == id,]
+            out$start <- out$start+attr(x,'origin')
+            out$end <- out$end + attr(x, 'origin')
+            return(out)
+          }
+          for (i in 1:length(ids)){
+            id <- ids[i]
+            l <- do.call('rbind',lapply(scene,l2df,id = id))
+            for (j in 1:nrow(l)){
+              dfl <- l[j,'start']:l[j,'end']
+              index <- dfl-min(allDays)+1
+              fl[i,index] <- T
+            }
           }
         }
-
-        n <- sum(fl, na.rm = T) # number of flowering days for all individuals
-        nind <- apply(fl,1, function(x)sum(x, na.rm = T)) # number of flowering days per individual
-        prop <- apply(fl,2,function(x){sum(x, na.rm = T)/n}) # proportion of all flowering that occured each day
-        indPropDaily<- t(apply(fl,1,function(x){x*prop}))
-        totalIndProp <- apply(indPropDaily,1,sum, na.rm = T) # proportion of all flowering that occured on the days an individual was flowering
-        indSync <- data.frame(id = ids, synchrony = totalIndProp, days = nind)
+        n <- sum(fl, na.rm = TRUE) # number of flowering days/years for all individuals
+        nind <- apply(fl,1, sum, na.rm = TRUE) # number of flowering days/years per individual
+        if(method == 'sync_prop'){
+          prop <- apply(fl,2,function(x){(sum(x, na.rm = TRUE)-1)/n}) # proportion of all flowering that occured each day/year, minus one (individual cannot mate with self)
+          indProp <- t(apply(fl,1,function(x){x*prop}))
+          totalIndProp <- apply(indProp,1,sum, na.rm = TRUE) # proportion of all flowering that occured on the days/years an individual was flowering
+          indSync <- data.frame(id = ids, synchrony = totalIndProp, time = nind)
+        }
+        if(method == 'mean_interactions'){
+          tot <- apply(fl,2,function(x){sum(x, na.rm = TRUE)}) # number of flowering individuals per day
+          indInt <- apply(fl,1,function(x){sum(x*tot, na.rm = TRUE)})
+          intPerDay <- indInt/nind
+          indSync <- data.frame(id = ids, synchrony = intPerDay, time = nind)
+        }
         pairSync <- NULL
         popSync <- average(indSync[,2])
       }
@@ -340,12 +363,13 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
   } else {
     n <- nrow(scene) # population size
     if (n < 2) {
-      stop("Can't calculate synchrony for population size less than 2")
-    }
-
-    if (method == "augspurger") {
-      if (subject %in% c("pair", "all")) {
-        syncMatrix <- overlap(scene, "overlap", compareToSelf = T)
+      warning("Can't calculate synchrony for population size less than 2")
+      indSync <- NA
+      pairSync <- NA
+      popSync <- NA
+    } else if (method == "augspurger") {
+      if (subject %in% c("pairwise", "all")) {
+        syncMatrix <- overlap(scene, "overlap", compareToSelf = TRUE)
         pairSync <- syncMatrix/scene$duration
       }
 
@@ -377,21 +401,26 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
 
       popSync <- average(indSync[,2])
 
-    } else if (method == 'sync_prop') {
+    } else if (method == 'sync_prop' | method == 'mean_interactions') {
       fl <- receptivityByDay(scene)
-      n <- sum(fl)
-      prop <- apply(fl, 2, function(x){sum(x)/n})
-      indPropDaily<- t(apply(fl,1,function(x){x*prop}))
-      totalIndProp <- rowSums(indPropDaily)
-
+      if(method == "sync_prop"){
+        n <- sum(fl)
+        prop <- apply(fl, 2, function(x){(sum(x)-1)/n})
+        daily<- t(apply(fl,1,function(x){x*prop}))
+        sync <- rowSums(daily)
+      } else{
+        tot <- apply(fl, 2, function(x){sum(x)})
+        daily<- t(apply(fl,1,function(x){x*tot}))
+        sync <- rowSums(daily)
+      }
       pairSync <- NULL
-      indSync <- data.frame(id = scene$id, synchrony = totalIndProp)
+      indSync <- data.frame(id = scene$id, synchrony = sync)
       popSync <- average(indSync[,2])
 
     } else if (method == "overlap") {
-      if (subject %in% c("pair", "all")) {
-        syncMatrix <- overlap(scene, "overlap", compareToSelf = T)
-        eitherMatrix <- overlap(scene, "total", compareToSelf = T)
+      if (subject %in% c("pairwise", "all")) {
+        syncMatrix <- overlap(scene, "overlap", compareToSelf = TRUE)
+        eitherMatrix <- overlap(scene, "total", compareToSelf = TRUE)
         pairSync <- syncMatrix/eitherMatrix
       }
 
@@ -421,13 +450,13 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
         }
       }
 
-      if (subject %in% c("pair", "all")) {
-        syncMatrix <- overlap(scene, "overlap", compareToSelf = T)
-        eitherMatrix <- overlap(scene, "total", compareToSelf = T)
+      if (subject %in% c("pairwise", "all")) {
+        syncMatrix <- overlap(scene, "overlap", compareToSelf = TRUE)
+        eitherMatrix <- overlap(scene, "total", compareToSelf = TRUE)
         pairSyncInit <- syncMatrix/eitherMatrix
         pairSync <- matrix(nrow = n, ncol = n)
         for (i in 1:n) {
-          pairSync[i,] <- sort(pairSyncInit[i,], decreasing = T)
+          pairSync[i,] <- sort(pairSyncInit[i,], decreasing = TRUE)
         }
       }
 
@@ -441,21 +470,21 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
 
       popSync <- average(indSync[,2])
 
-    } else if (method == "simple1") {
+    } else if (method == "peak-n") {
       pairSync <- NULL
       indSync <- NULL
 
       indCols <- colSums(receptivityByDay(scene))
       popSync <- max(indCols)/n
 
-    } else if (method == "simple2") {
+    } else if (method == "peak-observations") {
       pairSync <- NULL
       indSync <- NULL
 
       indCols <- colSums(receptivityByDay(scene))
       popSync <- max(indCols)/sum(indCols)
 
-    } else if (method == "simple3") {
+    } else if (method == "average-peak") {
       pairSync <- NULL
       indSync <- NULL
 
@@ -466,27 +495,38 @@ synchrony <- function(scene, method, subject = "all", averageType = "mean",
 
 
     # return
-    potential <- list()
-    if ("population" %in% subject) {
-      potential$pop <- popSync
+    if (length(subject) > 1 | "all" %in% subject){
+      potential <- list()
+      if ("population" %in% subject) {
+        potential$pop <- popSync
+      }
+      if ("individual" %in% subject) {
+        potential$ind <- indSync
+      }
+      if ("pairwise" %in% subject) {
+        potential$pair <- pairSync
+      }
+      if ("all" %in% subject) {
+        potential$pop <- popSync
+        potential$ind <- indSync
+        potential$pair <- pairSync
+      }
+    } else{
+      if ("population" %in% subject) {
+        potential <- popSync
+      }
+      if ("individual" %in% subject) {
+        potential <- indSync
+      }
+      if ("pairwise" %in% subject) {
+        potential <- pairSync
+      }
     }
-    if ("individual" %in% subject) {
-      potential$ind <- indSync
-    }
-    if ("pairwise" %in% subject) {
-      potential$pair <- pairSync
-    }
-    if ("all" %in% subject) {
-      potential$pop <- popSync
-      potential$ind <- indSync
-      potential$pair <- pairSync
-    }
+
     attr(potential, "t") <- TRUE
     attr(potential, "s") <- FALSE
     attr(potential, "c") <- FALSE
     potential
   }
 }
-
-
 
