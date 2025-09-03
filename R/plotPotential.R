@@ -19,7 +19,7 @@
 ##'  If fewer than three individuals from the subset are available in a year, no network diagram or heatmap will be returned for that year.
 ##' @export
 ##' @author Amy Waananen
-##' @seealso see generic function \code{\link{points}} for values of \code{pch}
+##' @seealso see generic function \code{graphics::\link[graphics]{points}()} for values of \code{pch}
 ##' @examples
 ##' pop <- simulateScene()
 ##' sync <- synchrony(pop, "augs")

@@ -1,3 +1,7 @@
+### mateable 0.3.3
+
+Updated package anchors in links & made other minor fixes.
+
 ### mateable 0.3.2 is now available on CRAN.
 
 We added new arguments to several functions to increase options for summarizing and visualizing mating scene data (see specific updates in 'News') and made updates for compatibility with R 4.2.2.

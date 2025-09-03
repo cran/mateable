@@ -53,7 +53,7 @@ sync <- synchrony(pop, "augs")
 plotPotential(sync)
 }
 \seealso{
-see generic function \code{\link{points}} for values of \code{pch}
+see generic function \code{graphics::\link[graphics]{points}()} for values of \code{pch}
 }
 \author{
 Amy Waananen

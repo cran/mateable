@@ -16,7 +16,7 @@
 ##' and the same individuals will be represented in each year, if possible.
 ##' @export
 ##' @author Amy Waananen
-##' @seealso see generic function \code{\link{points}} for values of \code{pch}
+##' @seealso see generic function \code{graphics::\link[graphics]{points}()} for values of \code{pch}
 ##' @examples
 ##' pop <- simulateScene()
 ##' sync <- synchrony(pop, "augs")

@@ -22,7 +22,7 @@ focalPlants <- c(17217, 17202, 14582, 15114, 7614, 1509, 17002, 7431, 3370)
 par(mar = c(3,4,1,1), oma = c(2,0,0,0))
 plotScene(eelr, c('s','t'), sub = focalPlants, N = 4, label.cex = 0.5, plot.lim.zoom = TRUE)
 
-## ---- collapse = TRUE---------------------------------------------------------
+## ----collapse = TRUE----------------------------------------------------------
 eSum <- matingSummary(eelr)
 
 ## -----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ plotPotential(eProx, plotType = "net", sub.ids = focalPlants)
 eOver <- overlap(eelr, compareToSelf = TRUE) # matrix of days overlapping
 hist(eOver, 40, main = "Histogram of days overlapping between pair") 
 
-## ---- fig.show = 'hold'-------------------------------------------------------
+## ----fig.show = 'hold'--------------------------------------------------------
 eRecep <- receptivityByDay(eelr) # T/F receptive on each day
 str(eRecep) # matrix
 dailyReceptivitySummary <- receptivityByDay(eelr, summary = TRUE)
@@ -133,11 +133,11 @@ compatMulti <- compatibility(multiYearScene, method = 'si_echinacea')
 
 str(syncMulti) # a list of lists
 
-## ---- fig.height = 8----------------------------------------------------------
+## ----fig.height = 8-----------------------------------------------------------
 par(mfrow = c(3,3))
 plotPotential(syncMulti, sub.ids = c(1,6,12,18,13,24,55,44,60))
 
-## ---- fig.height = 8----------------------------------------------------------
+## ----fig.height = 8-----------------------------------------------------------
 par(mfrow = c(3,1), mar = c(1,5,1,1), oma = c(4,4,4,0))
 plot3DPotential(list(syncMulti, proxMulti, compatMulti), subject = 'ind', pt.cex = 1, sub.ids = c(1,6,12,18,13,24,55,45,60))
 

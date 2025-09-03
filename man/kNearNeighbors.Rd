@@ -24,5 +24,5 @@ pop <- simulateScene(10)
 kNearNeighbors(pop, 3)
 }
 \seealso{
-\code{\link{knn.dist}}, \code{\link{proximity}}
+\code{FNN::\link[FNN]{knn.dist}()}, \code{\link{proximity}}
 }

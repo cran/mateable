@@ -22,5 +22,5 @@ pop <- simulateScene()
 distance <- pairDist(pop)
 }
 \seealso{
-\code{\link{dist}}
+\code{stats::\link[stats]{dist}()}
 }

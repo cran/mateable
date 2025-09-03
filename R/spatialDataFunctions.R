@@ -5,7 +5,7 @@
 ##' @param scene a matingScene object
 ##' @return a matrix of all pairwise comparisons with attributes for order of
 ##' identifiers (idOrder)
-##' @seealso \code{\link{dist}}
+##' @seealso \code{stats::\link[stats]{dist}()}
 ##' @examples
 ##' pop <- simulateScene()
 ##' distance <- pairDist(pop)
@@ -29,7 +29,7 @@ pairDist <- function(scene) {
 ##' @return a matrix where the rows are all individuals and the columns are
 ##' their k nearest neighbors
 ##' @export
-##' @seealso \code{\link{knn.dist}}, \code{\link{proximity}}
+##' @seealso \code{FNN::\link[FNN]{knn.dist}()}, \code{\link{proximity}}
 ##' @examples
 ##' pop <- simulateScene(10)
 ##' kNearNeighbors(pop, 3)

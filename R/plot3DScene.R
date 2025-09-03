@@ -17,7 +17,7 @@
 ##' @return No return value, called to draw a plot
 ##' @export
 ##' @author Amy Waananen
-##' @seealso see generic function \code{\link{points}} for values of \code{pch}
+##' @seealso see generic function \code{graphics::\link[graphics]{points}()} for values of \code{pch}
 ##' @examples
 ##' pop <- simulateScene()
 ##' plot3DScene(pop)

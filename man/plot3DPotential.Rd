@@ -52,7 +52,7 @@ compat <- compatibility(pop, 'si_echinacea')
 plot3DPotential(list(sync,prox,compat), subject = 'ind')
 }
 \seealso{
-see generic function \code{\link{points}} for values of \code{pch}
+see generic function \code{graphics::\link[graphics]{points}()} for values of \code{pch}
 }
 \author{
 Amy Waananen

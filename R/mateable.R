@@ -5,14 +5,13 @@
 #' potential. It provides a method for simulating populations and includes a
 #' dataset.
 #'
-#' @docType package
 #' @name mateable-package
 #' @aliases mateable mateable-package
 #' @author Stuart Wagenius, Danny Hanson, Amy Waananen
-#' @references Background: \url{https://echinaceaProject.org/}
+#' @references Background: \url{https://echinaceaproject.org/}
 #' @examples
 #' library(mateable)
-
+#'
 #'
 #' pop <- simulateScene()
 #' pop
@@ -32,3 +31,4 @@
 #' ee <- makeScene(ech2012, FALSE, "firstDay", "lastDay", "Ecoord", "Ncoord", idCol = "tagNo")
 #'
 NULL
+"_PACKAGE"
